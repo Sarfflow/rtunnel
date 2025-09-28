@@ -1,7 +1,11 @@
 {
     "cSpell.words": [
         "Acked",
+        "Debugf",
+        "rttvar",
         "rtunnel",
-        "Unacked"
+        "srtt",
+        "Unacked",
+        "upgrader"
     ]
 }

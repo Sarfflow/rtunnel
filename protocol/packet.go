@@ -21,7 +21,7 @@ type Packet struct {
 	Data []byte
 }
 
-// Serialize 零拷贝序列化（返回一个完整的 []byte）
+// Serialize 序列化（返回一个完整的 []byte）
 func (p *Packet) Serialize() []byte {
 	totalLen := headerSize + len(p.Data)
 	buf := make([]byte, totalLen)
@@ -37,7 +37,7 @@ func (p *Packet) Serialize() []byte {
 	return buf
 }
 
-// Deserialize 零拷贝反序列化（Data 直接引用原始切片，无额外分配）
+// Deserialize 反序列化（返回一个完整的 Packet）
 func Deserialize(raw []byte) (*Packet, error) {
 	if len(raw) < headerSize {
 		return nil, errors.New("packet too short")
@@ -53,19 +53,19 @@ func Deserialize(raw []byte) (*Packet, error) {
 		return nil, errors.New("invalid packet length")
 	}
 
-	// 零拷贝：Data 引用原始切片的一部分
-	if dataLen > 0 {
-		p.Data = raw[21 : 21+dataLen]
-	} else {
-		p.Data = nil
-	}
+	// deep copy
+	p.Data = make([]byte, dataLen)
+	copy(p.Data, raw[21:21+dataLen])
 
 	return p, nil
 }
 
 // 工厂方法
 func NewDataPacket(seq uint64, data []byte) *Packet {
-	return &Packet{Flag: PacketData, Seq: seq, Data: data}
+	// deep copy
+	dataCopy := make([]byte, len(data))
+	copy(dataCopy, data)
+	return &Packet{Flag: PacketData, Seq: seq, Data: dataCopy}
 }
 
 func NewAckPacket(ack uint64) *Packet {
